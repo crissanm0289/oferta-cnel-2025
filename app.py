@@ -137,7 +137,71 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
 
         st.markdown("**12. Firmas de responsabilidad**")
         c_sig1, c_sig2 = st.columns(2)
-        c_sig1.text_input("12. Firma: Fiscalizador (Usuario)", "Ing. Fsicalizador")
+        c_sig1.text_input("12. Firma: Fiscalizador (Usuario)", "FISCALIZADOR")
         c_sig2.text_input("12. Firma: Contratista (Residente)", "")
 
-        st.form_submit_button("
+        st.form_submit_button("GUARDAR RDO DIARIO")
+
+
+# ==============================================================================
+# MÓDULO 2: DASHBOARD WEB (DESEMPEÑO) - NUMERACIÓN ESTRICTA
+# ==============================================================================
+elif modulo == "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)":
+    st.markdown(f'<div class="main-header">Módulo 2: Dashboard de Desempeño</div>', unsafe_allow_html=True)
+    st.caption(f"Indicadores TDR para: {contrato_seleccionado}")
+
+    # 1. Fecha de emisión
+    st.markdown(f"#### 1. Fecha de emisión: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+
+    # 2. % Avance Acumulado
+    st.markdown("#### 2. % de Avance Acumulado por componentes o por hitos y por proyecto")
+    k1, k2, k3 = st.columns(3)
+    val_real = df_data['Físico Real (%)'].iloc[5]
+    k1.metric("Avance Global", f"{val_real}%")
+    k2.metric("Hito Civil", f"{val_real-5}%")
+    k3.metric("Hito Eléctrico", f"{val_real+2}%")
+
+    st.markdown("---")
+
+    # GRÁFICOS SOLICITADOS (3 al 8)
+    # Usamos st.subheader para poner el número grande encima de cada gráfico
+    
+    col_izq, col_der = st.columns(2)
+
+    with col_izq:
+        # 3. Resumen Global
+        st.subheader("3. Gráfico de Resumen de avance Global Acumulado")
+        fig3 = go.Figure()
+        fig3.add_trace(go.Scatter(x=df_data['Mes'], y=df_data['Físico Real (%)'], mode='lines+markers', name='Real Acumulado'))
+        st.plotly_chart(fig3, use_container_width=True)
+
+        # 5. Avance de Pagos
+        st.subheader("5. Gráficos de Avance de Pagos (Acumulado)")
+        fig5 = px.line(df_data, x='Mes', y='Acumulado ($)', markers=True)
+        fig5.update_traces(line_color='green')
+        st.plotly_chart(fig5, use_container_width=True)
+
+        # 7. Pagos Mensuales
+        st.subheader("7. Gráfico de Pagos mensuales (Planillas)")
+        fig7 = px.bar(df_data, x='Mes', y='Devengo ($)', color='Devengo ($)')
+        st.plotly_chart(fig7, use_container_width=True)
+
+    with col_der:
+        # 4. Avance físico por proyecto por mes
+        st.subheader("4. Gráfico de Avance físico total por proyecto por mes")
+        fig4 = px.bar(df_data, x='Mes', y='Físico Real (%)', title="Evolución Mensual")
+        st.plotly_chart(fig4, use_container_width=True)
+
+        # 6. Avance Porcentual y en Dólares
+        st.subheader("6. Gráfico de Avance porcentual y en dólares")
+        fig6 = go.Figure()
+        fig6.add_trace(go.Scatter(x=df_data['Mes'], y=df_data['Físico Real (%)'], name='% Avance', yaxis='y1'))
+        fig6.add_trace(go.Scatter(x=df_data['Mes'], y=df_data['Acumulado ($)'], name='$ Dólares', yaxis='y2', line=dict(dash='dot')))
+        fig6.update_layout(yaxis=dict(title="%"), yaxis2=dict(title="$", overlaying='y', side='right'))
+        st.plotly_chart(fig6, use_container_width=True)
+
+        # 8. Devengo de Anticipo
+        st.subheader("8. Gráfico de Devengo de anticipo")
+        fig8 = px.area(df_data, x='Mes', y='Anticipo ($)')
+        fig8.update_layout(title="Amortización Anticipo")
+        st.plotly_chart(fig8, use_container_width=True)
