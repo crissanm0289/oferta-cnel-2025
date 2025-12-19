@@ -66,20 +66,20 @@ st.sidebar.info(f"**Oferente:** Ing. Cristhian San Martin\n**Proceso:** Fiscaliz
 def obtener_ficha_tecnica(zona):
     if zona == "ZONA 1 - SECTOR CAMARONERO":
         return {
-            "Entidad": "CNEL EP - UNIDAD DE NEGOCIO EL ORO",
-            "Categoría": "Obra de Electrificación",
-            "Objeto": "CONSTRUCCIÓN DE REDES ELÉCTRICAS PARA EL SECTOR CAMARONERO - ZONA 1",
-            "Código": "LICO-CNEL-ORO-2024-001 (Ejemplo)",
+            "Entidad": "EMPRESA ELÉCTRICA PÚBLICA ESTRATÉGICA CORPORACIÓN NACIONAL DE ELECTRICIDAD CNEL EP - UNIDAD DE NEGOCIO EL ORO",
+            "Categoría": "CONSTRUCCION DE REDES DE DISTRIBUCION",
+            "Objeto": "EOR Construccion de redes electricas para proyectos PER sector camaronero zona 1 CAF GD",
+            "Código": "COTO-CNELEP-2025-43",
             "Plazo": "150 Días Calendario",
-            "Contratista": "CONSTRUCTORA ELÉCTRICA DEL SUR S.A.", # <--- PON AQUÍ EL REAL
-            "Rep_Legal": "Ing. Juan Pérez",                       # <--- PON AQUÍ EL REAL
-            "Monto": "$ 750,000.00",
-            "Link": "https://www.compraspublicas.gob.ec/proceso/link1"
+            "Contratista": "CONSORCIO CAF ARENILLAS", # <--- PON AQUÍ EL REAL
+            "Rep_Legal": "OSCAR LUIS YANANGOMEZ SUQUILANDA (Procurador Común)",                       # <--- PON AQUÍ EL REAL
+            "Monto": ""$ 399.743,03415",
+            "Link": "https://www.compraspublicas.gob.ec/ProcesoContratacion/compras/PC/informacionProcesoContratacion2.cpe?idSoliCompra=Mlped7h-x8tM2Mi5JzAbNVHBoqrlPkyFh2Yoxj85zQc"
         }
     else:
         return {
-            "Entidad": "CNEL EP - UNIDAD DE NEGOCIO EL ORO",
-            "Categoría": "Obra de Electrificación",
+            "Entidad": "EMPRESA ELÉCTRICA PÚBLICA ESTRATÉGICA CORPORACIÓN NACIONAL DE ELECTRICIDAD CNEL EP - UNIDAD DE NEGOCIO EL ORO",
+            "Categoría": "CONSTRUCCION DE REDES DE DISTRIBUCION",
             "Objeto": "CONSTRUCCIÓN DE REDES ELÉCTRICAS PARA EL SECTOR CAMARONERO - ZONA 2",
             "Código": "LICO-CNEL-ORO-2024-002 (Ejemplo)",
             "Plazo": "150 Días Calendario",
@@ -293,3 +293,4 @@ elif modulo == "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)":
         fig8 = px.area(df_data, x='Mes', y='Anticipo ($)')
         fig8.update_layout(title="Amortización Anticipo")
         st.plotly_chart(fig8, use_container_width=True)
+
