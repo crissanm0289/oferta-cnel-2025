@@ -59,7 +59,7 @@ contrato_seleccionado = st.sidebar.selectbox(
 
 st.sidebar.markdown("---")
 modulo = st.sidebar.radio("Navegación:", ["MÓDULO 1: RDO (Lista de 19 Puntos)", "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)"])
-st.sidebar.info(f"**Oferente:** Ing. Cristhian San Martin\n**Proceso:** Fiscalización Redes Eléctricas")
+st.sidebar.info(f"**Oferente:** Consorcio FiscalRed\n**Proceso:** Fiscalización Redes Eléctricas")
 
 # --- FUNCIÓN PARA DATOS ESTÁTICOS (FICHA TÉCNICA) ---
 # ¡AQUÍ ES DONDE DEBES PONER TUS DATOS REALES!
@@ -293,6 +293,7 @@ elif modulo == "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)":
         fig8 = px.area(df_data, x='Mes', y='Anticipo ($)')
         fig8.update_layout(title="Amortización Anticipo")
         st.plotly_chart(fig8, use_container_width=True)
+
 
 
 
