@@ -90,7 +90,7 @@ st.sidebar.markdown("---")
 if st.sidebar.button("🗑️ RESETEAR RDO Y DASHBOARD", help="Borra todos los datos y reinicia a cero"):
     reset_app()
 
-st.sidebar.info(f"**Oferente:** Consorcio FiscalRed\n**Usuario:** Ing. Cristhian San Martin")
+st.sidebar.info(f"**Oferente:** Consorcio FiscalRed\n**Usuario:** Fiscalizador")
 
 # --- FICHA TÉCNICA ---
 def obtener_ficha_tecnica(zona):
@@ -412,3 +412,4 @@ elif modulo == "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)":
         st.subheader("8. Gráfico de Devengo de anticipo")
         fig8 = px.area(df_final, x='Fecha', y='Inversión Diaria ($)', color_discrete_sequence=['red'])
         st.plotly_chart(fig8, use_container_width=True)
+
