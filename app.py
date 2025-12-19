@@ -8,28 +8,34 @@ from datetime import datetime, date
 st.set_page_config(layout="wide", page_title="SISTEMA DE GESTIÓN RDO & DASHBOARD", page_icon="⚡")
 
 # --- GESTIÓN DE MEMORIA (SESSION STATE) ---
+# Inicializamos el DataFrame con columnas para valores DIARIOS y ACUMULADOS
 if 'data_zona1' not in st.session_state:
     st.session_state['data_zona1'] = pd.DataFrame({
-        'Fecha': [datetime.now().date()],
-        'Mes': ['Inicio'],
-        'Físico Real (%)': [0.0],
-        'Financiero Real (%)': [0.0],
-        'Devengo ($)': [0.0],
-        'Acumulado ($)': [0.0],
-        'Anticipo ($)': [0.0]
+        'Fecha': [date(2025, 1, 1)],
+        'Día N': ['Inicio'],
+        'Físico Acum (%)': [0.0],
+        'Financiero Acum ($)': [0.0],
+        'Físico Diario (%)': [0.0],       # Calculado: Hoy - Ayer
+        'Inversión Diaria ($)': [0.0],    # Calculado: Hoy - Ayer
+        'Saldo ($)': [0.0],               # Calculado: Total - Acumulado
+        'Detalle': ['Inicio de Contrato'],
+        'Fotos': [0]
     })
 
 if 'data_zona2' not in st.session_state:
     st.session_state['data_zona2'] = pd.DataFrame({
-        'Fecha': [datetime.now().date()],
-        'Mes': ['Inicio'],
-        'Físico Real (%)': [0.0],
-        'Financiero Real (%)': [0.0],
-        'Devengo ($)': [0.0],
-        'Acumulado ($)': [0.0],
-        'Anticipo ($)': [0.0]
+        'Fecha': [date(2025, 1, 1)],
+        'Día N': ['Inicio'],
+        'Físico Acum (%)': [0.0],
+        'Financiero Acum ($)': [0.0],
+        'Físico Diario (%)': [0.0],
+        'Inversión Diaria ($)': [0.0],
+        'Saldo ($)': [0.0],
+        'Detalle': ['Inicio de Contrato'],
+        'Fotos': [0]
     })
 
+# Control de navegación entre pestañas
 if 'pagina_actual' not in st.session_state:
     st.session_state.pagina_actual = "MÓDULO 1: RDO (Lista de 19 Puntos)"
 
@@ -55,6 +61,12 @@ st.markdown("""
     }
     .ficha-tecnica th {background-color: #1E3A8A; color: white; padding: 6px; text-align: left; border: 1px solid #ddd;}
     .ficha-tecnica td {padding: 6px; border: 1px solid #ddd; background-color: #f9f9f9; color: #333;}
+    
+    /* Caja de Error */
+    .error-box {
+        padding: 10px; background-color: #f8d7da; color: #721c24; 
+        border: 1px solid #f5c6cb; border-radius: 5px; margin-bottom: 10px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -110,7 +122,6 @@ def obtener_ficha_tecnica(zona):
 
 ficha = obtener_ficha_tecnica(contrato_seleccionado)
 
-# --- VISUALIZACIÓN FICHA TÉCNICA ---
 def dibujar_ficha(datos):
     html_table = f"""
     <table class="ficha-tecnica">
@@ -139,175 +150,47 @@ def dibujar_ficha(datos):
     st.markdown(html_table, unsafe_allow_html=True)
 
 # ==============================================================================
-# MÓDULO 1: RDO WEB (FORMULARIO)
+# MÓDULO 1: RDO WEB (INGRESO CON VALIDACIÓN Y EDICIÓN)
 # ==============================================================================
 if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
     st.markdown(f'<div class="main-header">Módulo 1: Registro Diario de Obra (RDO)</div>', unsafe_allow_html=True)
     dibujar_ficha(ficha)
     st.warning("Formulario de Campo - Numeración conforme a TDR Pág. 28")
 
-    # Formulario
-    with st.form("rdo_form", clear_on_submit=False):
-        
-        # A. GENERALES
-        st.markdown("### A. Datos Generales")
-        c1, c2 = st.columns(2)
-        fecha_rdo = c1.date_input("1. Fechas de Ejecución", date.today())
-        c2.text_input("4. Día de ejecución", "", placeholder="Ej: Día 1")
-        
-        c3, c4 = st.columns(2)
-        c3.text_input("2. Datos Económicos del Contrato", "$ 67,490.10 (Fiscalización)", disabled=True)
-        c4.text_input("3. Dato Económico total de los Proyectos", ficha['Monto_Str'], disabled=True)
-
-        # B. CAMPO
-        st.markdown("### B. Condiciones de Campo")
-        col_clima, col_inc = st.columns(2)
-        col_clima.selectbox("5. Condiciones climáticas", ["", "Soleado", "Nublado", "Lluvia", "Tormenta"], index=0)
-        col_inc.selectbox("19. Registro de Incidentes", ["Sin Novedades", "Incidente Leve", "Accidente"], index=0)
-
-        # C. CONTROL DE AVANCE
-        st.markdown("### C. Control de Avance y Desempeño")
-        st.info("**6. Progreso General del Contrato de Obra:**")
-        
-        m1, m2, m3 = st.columns(3)
-        pct_avance = m1.number_input("6.i. % de Avance Actual", min_value=0.0, max_value=100.0, value=0.0, step=0.01)
-        monto_avance = m2.number_input("6.i. $ de Avance Actual", min_value=0.0, value=0.0, step=100.0)
-        m3.metric("6.i. Avance Avaluado (Automático)", f"$ {monto_avance:,.2f}")
-
-        # Puntos 6.ii y 7: CORREGIDOS Y SEPARADOS
-        st.markdown("**6.ii. Avance prorrateado por Hito (Ingreso Rápido)**")
-        col_h1, col_h2 = st.columns(2)
-        col_h1.number_input("6.ii. Avance Hito 1 (Civil) %", min_value=0.0, max_value=100.0, value=0.0)
-        col_h2.number_input("6.ii. Avance Hito 2 (Eléctrico) %", min_value=0.0, max_value=100.0, value=0.0)
-        
-        # AQUÍ ESTÁ EL CAMBIO SOLICITADO: CPI y SPI SEPARADOS
-        st.markdown("**7. Indicadores de Desempeño (CPI / SPI)**")
-        col_cpi, col_spi = st.columns(2)
-        
-        # Campo CPI con Ayuda
-        col_cpi.number_input(
-            "7.i. CPI (Eficiencia de Costo)", 
-            value=0.0, step=0.01, 
-            help="CPI (Cost Performance Index): Mide la eficiencia del gasto.\nFórmula: Valor Ganado (EV) / Costo Real (AC).\n• CPI > 1: Bajo presupuesto (Ahorro).\n• CPI < 1: Sobre presupuesto."
-        )
-        
-        # Campo SPI con Ayuda
-        col_spi.number_input(
-            "7.ii. SPI (Eficiencia de Cronograma)", 
-            value=0.0, step=0.01,
-            help="SPI (Schedule Performance Index): Mide la eficiencia del tiempo.\nFórmula: Valor Ganado (EV) / Valor Planificado (PV).\n• SPI > 1: Adelantado.\n• SPI < 1: Retrasado."
-        )
-        
-        cc1, cc2 = st.columns(2)
-        cc1.selectbox("14. Control Tabla de Cantidades", ["", "SI - Verificado", "NO"], index=0)
-        cc2.text_input("15. Porcentaje Total Proyectos", "", placeholder="Ponderado...")
-
-        # Gráfico (Referencial)
-        st.markdown("**8. Curva de Avance – Valor Ganado**")
-        fig_rdo = go.Figure()
-        fig_rdo.add_trace(go.Scatter(y=[0, pct_avance], mode='lines+markers', name='Tu Avance'))
-        fig_rdo.update_layout(height=150, margin=dict(t=10, b=10))
-        st.plotly_chart(fig_rdo, use_container_width=True)
-
-        # D. ADMIN
-        st.markdown("### D. Administrativo y Detalle")
-        l1, l2, l3 = st.columns(3)
-        l1.text_input("16. Contratos Complementarios", "Ninguno")
-        l2.text_input("17. Órdenes de Trabajo", "")
-        l3.text_input("18. Incremento Cantidades", "0.00%")
-
-        st.text_area("13. Personal y Equipos", "", placeholder="Detalle cuadrilla...")
-        st.text_area("10. Actividades Ejecutadas", "", placeholder="Descripción...")
-        st.text_area("9. Observaciones Fiscalización", "")
-
-        st.markdown("**11. Registro Fotográfico & 12. Firmas**")
-        c_foto, c_firma = st.columns(2)
-        c_foto.file_uploader("Cargar Fotos", accept_multiple_files=True)
-        c_firma.text_input("12. Firma Responsable", "Ing. Cristhian San Martin")
-
-        # BOTÓN GUARDAR
-        submitted = st.form_submit_button("GUARDAR RDO DIARIO")
-    
-    # --- LOGICA GUARDADO ---
-    if submitted:
-        key_data = 'data_zona1' if contrato_seleccionado == "ZONA 1 - SECTOR CAMARONERO" else 'data_zona2'
-        df_actual = st.session_state[key_data]
-        
-        nueva_fila = {
-            'Fecha': fecha_rdo,
-            'Mes': fecha_rdo.strftime("%b-%d"),
-            'Físico Real (%)': pct_avance,
-            'Financiero Real (%)': (monto_avance / ficha['Monto_Num']) * 100 if ficha['Monto_Num'] > 0 else 0,
-            'Devengo ($)': monto_avance,
-            'Acumulado ($)': monto_avance,
-            'Anticipo ($)': monto_avance * 0.1
-        }
-        
-        df_nuevo = pd.concat([df_actual, pd.DataFrame([nueva_fila])], ignore_index=True)
-        st.session_state[key_data] = df_nuevo
-
-        st.success(f"✅ REGISTRO DEL DIA {fecha_rdo.strftime('%d/%m/%Y')}, GUARDADO CORRECTAMENTE.")
-        
-        col_msg, col_btn = st.columns([3, 1])
-        col_msg.info("Datos sincronizados con la Nube. Dashboard actualizado.")
-        
-        if col_btn.button("👉 Ver avance en DASHBOARD"):
-            st.session_state.navegacion_radio = "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)"
-            cambiar_pagina("MÓDULO 2: DASHBOARD (Lista de 8 Puntos)")
-            st.rerun()
-
-# ==============================================================================
-# MÓDULO 2: DASHBOARD
-# ==============================================================================
-elif modulo == "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)":
-    st.markdown(f'<div class="main-header">Módulo 2: Dashboard de Desempeño</div>', unsafe_allow_html=True)
-    dibujar_ficha(ficha)
-    
-    st.markdown(f"#### 1. Fecha de emisión: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
-    
+    # --- LÓGICA DE EDICIÓN (CANDADO) ---
     key_data = 'data_zona1' if contrato_seleccionado == "ZONA 1 - SECTOR CAMARONERO" else 'data_zona2'
-    df_dashboard = st.session_state[key_data]
-    
-    ultimo_avance = df_dashboard['Físico Real (%)'].iloc[-1]
-    ultimo_monto = df_dashboard['Acumulado ($)'].iloc[-1]
+    df_actual = st.session_state[key_data]
 
-    # 2. KPIs
-    st.markdown("#### 2. % de Avance Acumulado (Tiempo Real)")
-    k1, k2, k3 = st.columns(3)
-    k1.metric("Avance Físico Global", f"{ultimo_avance:.2f}%")
-    k2.metric("Inversión Ejecutada", f"$ {ultimo_monto:,.2f}")
-    k3.metric("Estado Hitos", "En Proceso" if ultimo_avance < 100 else "Completado")
+    # Checkbox para habilitar edición histórica
+    modo_edicion = st.checkbox("🔓 Modificar Registro Anterior (Corrección de Historial)")
 
-    st.markdown("---")
+    # Valores por defecto (Vacíos para nuevo registro)
+    defaults = {
+        "fecha": date.today(),
+        "dia_n": "",
+        "clima_idx": 0,
+        "incidente_idx": 0,
+        "pct_acum": 0.0,
+        "monto_acum": 0.0,
+        "cpi": 0.0,
+        "spi": 0.0,
+        "personal": "",
+        "actividad": "",
+        "firma": ""
+    }
+    indice_a_editar = -1
 
-    # Gráficos
-    c1, c2 = st.columns(2)
-    with c1:
-        st.subheader("3. Gráfico Resumen Global Acumulado")
-        fig3 = go.Figure()
-        fig3.add_trace(go.Scatter(x=df_dashboard['Mes'], y=df_dashboard['Físico Real (%)'], fill='tozeroy', name='Ejecutado'))
-        st.plotly_chart(fig3, use_container_width=True)
-        
-        st.subheader("5. Avance de Pagos (Acumulado)")
-        fig5 = px.bar(df_dashboard, x='Mes', y='Acumulado ($)', color_discrete_sequence=['green'])
-        st.plotly_chart(fig5, use_container_width=True)
-        
-        st.subheader("7. Pagos Mensuales")
-        fig7 = px.bar(df_dashboard, x='Mes', y='Devengo ($)')
-        st.plotly_chart(fig7, use_container_width=True)
-
-    with c2:
-        st.subheader("4. Avance Físico por Proyecto/Mes")
-        fig4 = px.line(df_dashboard, x='Mes', y='Físico Real (%)', markers=True)
-        st.plotly_chart(fig4, use_container_width=True)
-        
-        st.subheader("6. % Avance vs Dólares")
-        fig6 = go.Figure()
-        fig6.add_trace(go.Scatter(x=df_dashboard['Mes'], y=df_dashboard['Físico Real (%)'], name='%'))
-        fig6.add_trace(go.Bar(x=df_dashboard['Mes'], y=df_dashboard['Devengo ($)'], name='$', yaxis='y2', opacity=0.3))
-        fig6.update_layout(yaxis2=dict(overlaying='y', side='right'))
-        st.plotly_chart(fig6, use_container_width=True)
-        
-        st.subheader("8. Devengo de Anticipo")
-        fig8 = px.area(df_dashboard, x='Mes', y='Anticipo ($)', color_discrete_sequence=['red'])
-        st.plotly_chart(fig8, use_container_width=True)
+    if modo_edicion:
+        st.info("⚠️ MODO EDICIÓN: Seleccione el día que desea corregir. Los cambios sobreescribirán el registro.")
+        opciones = df_actual.iloc[1:]['Fecha'].astype(str) + " - " + df_actual.iloc[1:]['Día N']
+        if not opciones.empty:
+            seleccion = st.selectbox("Seleccione Registro:", opciones)
+            # Buscar datos
+            indice_a_editar = df_actual[df_actual['Fecha'].astype(str) + " - " + df_actual['Día N'] == seleccion].index[0]
+            fila = df_actual.loc[indice_a_editar]
+            
+            # Cargar datos al formulario
+            defaults["fecha"] = fila['Fecha']
+            defaults["dia_n"] = fila['Día N']
+            defaults["pct_acum"] = float(fila['Físico Acum (%)'])
+            defaults["monto_acum"]
