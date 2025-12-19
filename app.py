@@ -369,6 +369,44 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
 # ==============================================================================
 elif modulo == "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)":
     st.markdown(f'<div class="main-header">Módulo 2: Dashboard de Desempeño</div>', unsafe_allow_html=True)
+    
+    # --- BOTÓN DE IMPRESIÓN (ESTILO INTEGRADO) ---
+    st.markdown("""
+    <style>
+    @media print {
+        /* Ocultar barra lateral, header, footer y botones de streamlit al imprimir */
+        section[data-testid="stSidebar"], 
+        header, 
+        footer, 
+        .stAppDeployButton,
+        div.stButton {
+            display: none !important;
+        }
+        /* Ajustar el ancho del contenido principal */
+        section.main > div {
+            width: 100% !important;
+            padding: 0 !important;
+        }
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Botón que invoca la impresión del navegador
+    st.markdown("""
+    <div style="text-align: right; margin-bottom: 10px;">
+        <button onclick="window.print()" style="
+            background-color: #ef4444; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-weight: bold;">
+            🖨️ Imprimir Reporte en PDF
+        </button>
+    </div>
+    """, unsafe_allow_html=True)
+
     dibujar_ficha(ficha)
     st.markdown(f"#### 1. Fecha de emisión: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
 
