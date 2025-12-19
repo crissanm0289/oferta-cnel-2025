@@ -27,7 +27,7 @@ contrato_seleccionado = st.sidebar.selectbox(
 
 st.sidebar.markdown("---")
 modulo = st.sidebar.radio("Ir a Módulo:", ["MÓDULO 1: RDO (19 Puntos)", "MÓDULO 2: DASHBOARD (8 Puntos)"])
-st.sidebar.info(f"**Usuario:** Consorcio Fiscalred n\n**Perfil:** Oferente / Jefe Fiscalización")
+st.sidebar.info(f"**Usuario:** Consorcio Fsicalredn\n**Perfil:** Oferente / Jefe Fiscalización")
 
 # --- DATOS SIMULADOS (Backend) ---
 def obtener_datos(zona):
@@ -180,4 +180,19 @@ elif modulo == "MÓDULO 2: DASHBOARD (8 Puntos)":
     with col_der:
         # 4. Avance físico por proyecto por mes
         st.markdown("**4. Gráfico de Avance físico total por proyecto por mes**")
-        fig4 = px.
+        fig4 = px.bar(df_data, x='Mes', y='Físico Real (%)', title="Evolución Mensual")
+        st.plotly_chart(fig4, use_container_width=True)
+
+        # 6. Avance Porcentual y en Dólares
+        st.markdown("**6. Gráfico de Avance porcentual y en dólares**")
+        fig6 = go.Figure()
+        fig6.add_trace(go.Scatter(x=df_data['Mes'], y=df_data['Físico Real (%)'], name='% Avance', yaxis='y1'))
+        fig6.add_trace(go.Scatter(x=df_data['Mes'], y=df_data['Acumulado ($)'], name='$ Dólares', yaxis='y2', line=dict(dash='dot')))
+        fig6.update_layout(yaxis=dict(title="%"), yaxis2=dict(title="$", overlaying='y', side='right'))
+        st.plotly_chart(fig6, use_container_width=True)
+
+        # 8. Devengo de Anticipo
+        st.markdown("**8. Gráfico de Devengo de anticipo**")
+        fig8 = px.area(df_data, x='Mes', y='Anticipo ($)')
+        fig8.update_layout(title="Amortización Anticipo")
+        st.plotly_chart(fig8, use_container_width=True)
