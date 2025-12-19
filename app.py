@@ -73,7 +73,7 @@ def obtener_ficha_tecnica(zona):
             "Plazo": "150 Días Calendario",
             "Contratista": "CONSORCIO CAF ARENILLAS", # <--- PON AQUÍ EL REAL
             "Rep_Legal": "OSCAR LUIS YANANGOMEZ SUQUILANDA (Procurador Común)",                       # <--- PON AQUÍ EL REAL
-            "Monto": ""$ 399.743,03415",
+            "Monto": "$ 399.743,03415",
             "Link": "https://www.compraspublicas.gob.ec/ProcesoContratacion/compras/PC/informacionProcesoContratacion2.cpe?idSoliCompra=Mlped7h-x8tM2Mi5JzAbNVHBoqrlPkyFh2Yoxj85zQc"
         }
     else:
@@ -293,4 +293,5 @@ elif modulo == "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)":
         fig8 = px.area(df_data, x='Mes', y='Anticipo ($)')
         fig8.update_layout(title="Amortización Anticipo")
         st.plotly_chart(fig8, use_container_width=True)
+
 
