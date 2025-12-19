@@ -196,7 +196,7 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
                 defaults["monto_diario"] = float(fila['Inversión Diaria ($)'])
                 defaults["actividad"] = fila['Detalle']
                 defaults["personal"] = "Personal registrado..." 
-                defaults["firma"] = "Ing. Cristhian San Martin"
+                defaults["firma"] = "Fiscalizador"
                 idx_prev = indice_a_editar - 1
                 if idx_prev >= 0:
                     prev_pct_acum = df_actual.iloc[idx_prev]['Físico Acum (%)']
@@ -412,4 +412,5 @@ elif modulo == "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)":
         st.subheader("8. Gráfico de Devengo de anticipo")
         fig8 = px.area(df_final, x='Fecha', y='Inversión Diaria ($)', color_discrete_sequence=['red'])
         st.plotly_chart(fig8, use_container_width=True)
+
 
