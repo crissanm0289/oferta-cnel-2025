@@ -80,13 +80,13 @@ def obtener_ficha_tecnica(zona):
         return {
             "Entidad": "EMPRESA ELÉCTRICA PÚBLICA ESTRATÉGICA CORPORACIÓN NACIONAL DE ELECTRICIDAD CNEL EP - UNIDAD DE NEGOCIO EL ORO",
             "Categoría": "CONSTRUCCION DE REDES DE DISTRIBUCION",
-            "Objeto": "CONSTRUCCIÓN DE REDES ELÉCTRICAS PARA EL SECTOR CAMARONERO - ZONA 2",
-            "Código": "LICO-CNEL-ORO-2024-002 (Ejemplo)",
+            "Objeto": "EOR Construccion de redes electricas para proyectos PER sector camaronero zona 2 CAF GD",
+            "Código": "COTO-CNELEP-2025-44",
             "Plazo": "150 Días Calendario",
-            "Contratista": "CONSORCIO ENERGÍA TOTAL",             # <--- PON AQUÍ EL REAL
-            "Rep_Legal": "Ing. María López",                      # <--- PON AQUÍ EL REAL
-            "Monto": "$ 680,500.00",
-            "Link": "https://www.compraspublicas.gob.ec/proceso/link2"
+            "Contratista": "CONSORCIO REDES HUNTER",             # <--- PON AQUÍ EL REAL
+            "Rep_Legal": "Cristhian Manuel Romero Freire (Procurador Común)",                      # <--- PON AQUÍ EL REAL
+            "Monto": "$ 499.654,23906",
+            "Link": "https://www.compraspublicas.gob.ec/ProcesoContratacion/compras/PC/informacionProcesoContratacion2.cpe?idSoliCompra=VJCoFonyH1vOnVROGwOunGmr6qD3pTr-znOrgilqON0,"
         }
 
 ficha = obtener_ficha_tecnica(contrato_seleccionado)
@@ -293,5 +293,6 @@ elif modulo == "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)":
         fig8 = px.area(df_data, x='Mes', y='Anticipo ($)')
         fig8.update_layout(title="Amortización Anticipo")
         st.plotly_chart(fig8, use_container_width=True)
+
 
 
