@@ -232,7 +232,7 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
 
         st.markdown("**12. Firmas de responsabilidad**")
         c_sig1, c_sig2 = st.columns(2)
-        c_sig1.text_input("12. Firma: Fiscalizador (Usuario)", "Ing. Cristhian San Martin")
+        c_sig1.text_input("12. Firma: Fiscalizador (Usuario)", "Consorcio Fiscalred")
         c_sig2.text_input("12. Firma: Contratista (Residente)", f"{ficha['Contratista']}")
 
         st.form_submit_button("GUARDAR RDO DIARIO")
@@ -293,6 +293,7 @@ elif modulo == "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)":
         fig8 = px.area(df_data, x='Mes', y='Anticipo ($)')
         fig8.update_layout(title="Amortización Anticipo")
         st.plotly_chart(fig8, use_container_width=True)
+
 
 
 
