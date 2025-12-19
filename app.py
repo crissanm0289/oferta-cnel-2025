@@ -7,12 +7,12 @@ from datetime import datetime, date
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(layout="wide", page_title="SISTEMA DE GESTIÓN RDO & DASHBOARD", page_icon="⚡")
 
-# --- ESTILOS VISUALES (Tabla y Etiquetas Numeradas) ---
+# --- ESTILOS VISUALES ---
 st.markdown("""
 <style>
     .main-header {font-size: 24px; font-weight: bold; color: #1E3A8A; margin-bottom: 10px;}
     
-    /* Estilos para las etiquetas de los inputs (Números Rojos) */
+    /* Estilos para las etiquetas de los inputs (Números Rojos y Negrita) */
     .stTextInput label, .stDateInput label, .stSelectbox label, .stTextArea label, .stNumberInput label {
         font-weight: bold !important;
         color: #b91c1c !important; 
@@ -51,7 +51,7 @@ st.markdown("""
 st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/e/e4/Logotipo_de_CNEL.svg", width=150)
 st.sidebar.title("Configuración")
 
-# SELECTOR DE CONTRATO (Clave para cambiar los datos)
+# SELECTOR DE CONTRATO
 contrato_seleccionado = st.sidebar.selectbox(
     "Seleccione el Contrato/Zona:",
     ["ZONA 1 - SECTOR CAMARONERO", "ZONA 2 - SECTOR CAMARONERO"]
@@ -61,8 +61,7 @@ st.sidebar.markdown("---")
 modulo = st.sidebar.radio("Navegación:", ["MÓDULO 1: RDO (Lista de 19 Puntos)", "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)"])
 st.sidebar.info(f"**Oferente:** Consorcio FiscalRed\n**Proceso:** Fiscalización Redes Eléctricas")
 
-# --- FUNCIÓN PARA DATOS ESTÁTICOS (FICHA TÉCNICA) ---
-# ¡AQUÍ ES DONDE DEBES PONER TUS DATOS REALES!
+# --- FICHA TÉCNICA (DATOS REALES) ---
 def obtener_ficha_tecnica(zona):
     if zona == "ZONA 1 - SECTOR CAMARONERO":
         return {
@@ -71,9 +70,9 @@ def obtener_ficha_tecnica(zona):
             "Objeto": "EOR Construccion de redes electricas para proyectos PER sector camaronero zona 1 CAF GD",
             "Código": "COTO-CNELEP-2025-43",
             "Plazo": "150 Días Calendario",
-            "Contratista": "CONSORCIO CAF ARENILLAS", # <--- PON AQUÍ EL REAL
-            "Rep_Legal": "OSCAR LUIS YANANGOMEZ SUQUILANDA (Procurador Común)",                       # <--- PON AQUÍ EL REAL
-            "Monto": "$ 399.743,03415",
+            "Contratista": "CONSORCIO CAF ARENILLAS",
+            "Rep_Legal": "OSCAR LUIS YANANGOMEZ SUQUILANDA (Procurador Común)",
+            "Monto": "$ 399.743,03",
             "Link": "https://www.compraspublicas.gob.ec/ProcesoContratacion/compras/PC/informacionProcesoContratacion2.cpe?idSoliCompra=Mlped7h-x8tM2Mi5JzAbNVHBoqrlPkyFh2Yoxj85zQc"
         }
     else:
@@ -83,28 +82,28 @@ def obtener_ficha_tecnica(zona):
             "Objeto": "EOR Construccion de redes electricas para proyectos PER sector camaronero zona 2 CAF GD",
             "Código": "COTO-CNELEP-2025-44",
             "Plazo": "150 Días Calendario",
-            "Contratista": "CONSORCIO REDES HUNTER",             # <--- PON AQUÍ EL REAL
-            "Rep_Legal": "Cristhian Manuel Romero Freire (Procurador Común)",                      # <--- PON AQUÍ EL REAL
-            "Monto": "$ 499.654,23906",
+            "Contratista": "CONSORCIO REDES HUNTER",
+            "Rep_Legal": "Cristhian Manuel Romero Freire (Procurador Común)",
+            "Monto": "$ 499.654,23",
             "Link": "https://www.compraspublicas.gob.ec/ProcesoContratacion/compras/PC/informacionProcesoContratacion2.cpe?idSoliCompra=VJCoFonyH1vOnVROGwOunGmr6qD3pTr-znOrgilqON0,"
         }
 
 ficha = obtener_ficha_tecnica(contrato_seleccionado)
 
-# --- FUNCIÓN PARA GRÁFICOS (SIMULACIÓN) ---
+# --- DATOS PARA GRÁFICOS (SIMULACIÓN) ---
 def obtener_datos_graficos(zona):
     months = ['Nov', 'Dic', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun']
     if zona == "ZONA 1 - SECTOR CAMARONERO":
         fisico = [0, 8, 15, 30, 48, 65, 82, 100]
         programado = [0, 10, 20, 35, 50, 65, 80, 100]
         financiero = [0, 5, 12, 25, 40, 55, 70, 95]
-        monto_total = 1500000.00
+        monto_total = 399743.03  # Ajustado al monto real aprox
         anticipo = [x * 500 for x in financiero]
     else:
         fisico = [0, 5, 10, 15, 25, 40, 60, 85]
         programado = [0, 10, 20, 35, 50, 65, 80, 100]
         financiero = [0, 2, 8, 15, 25, 35, 50, 75]
-        monto_total = 1450000.00
+        monto_total = 499654.23 # Ajustado al monto real aprox
         anticipo = [x * 400 for x in financiero]
 
     df = pd.DataFrame({
@@ -120,8 +119,7 @@ def obtener_datos_graficos(zona):
 
 df_data, monto_obra = obtener_datos_graficos(contrato_seleccionado)
 
-# --- VISUALIZACIÓN DE LA FICHA TÉCNICA (HTML) ---
-# Esta función dibuja la tablita bonita arriba de todo
+# --- FUNCIÓN DE DIBUJO DE TABLA HTML ---
 def dibujar_ficha(datos):
     html_table = f"""
     <table class="ficha-tecnica">
@@ -166,7 +164,6 @@ def dibujar_ficha(datos):
 if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
     st.markdown(f'<div class="main-header">Módulo 1: Registro Diario de Obra (RDO)</div>', unsafe_allow_html=True)
     
-    # 1. MOSTRAR LA TABLA ESTÁTICA AQUÍ
     dibujar_ficha(ficha)
 
     st.warning("Formulario de Campo - Numeración conforme a TDR Pág. 28")
@@ -188,113 +185,15 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
         col_clima.selectbox("5. Condiciones climáticas", ["Soleado", "Nublado", "Lluvia Ligera", "Tormenta"])
         col_inc.selectbox("19. Registro de Incidentes o accidentes", ["Sin Novedades", "Incidente Leve", "Accidente Grave"])
 
-        # C. Control de Avance
+        # C. Control de Avance - ¡SECCIÓN CORREGIDA!
         st.markdown("### C. Control de Avance y Desempeño")
         st.info("**6. Progreso General del Contrato de Obra:**")
         
         m1, m2, m3 = st.columns(3)
-        val_fis = df_data['Físico Real (%)'].iloc[5]
-        m1.metric("6.i. % de Avance", f"{val_fis}%")
-        m2.metric("6.i. $ de Avance", f"$ {(val_fis/100)*monto_obra:,.2f}")
-        m3.metric("6.i. Avance Avaluado", f"$ {(val_fis/100)*monto_obra:,.2f}")
         
-        st.text_input("6.ii. Avance prorrateado de los proyectos por Hito", "Hito #1: 100% | Hito #2: 45%")
+        # Valor simulado inicial
+        val_fis_inicial = float(df_data['Físico Real (%)'].iloc[5])
+        monto_inicial = (val_fis_inicial / 100) * monto_obra
 
-        st.text_input("7. Indicadores de Desempeño y estimaciones", "CPI: 1.05 | SPI: 0.98 | Estimado al concluir: En presupuesto")
-        
-        cc1, cc2 = st.columns(2)
-        cc1.selectbox("14. Control mediante Tabla de cantidades y Reporte de Avance diario", ["SI - Verificado", "NO"])
-        cc2.text_input("15. Porcentaje total de los proyectos", f"{val_fis}% (Ponderado Global)")
-
-        # Gráfico Punto 8
-        st.markdown("**8. Curva de Avance – Valor Ganado – Simbología**")
-        fig_rdo = go.Figure()
-        fig_rdo.add_trace(go.Scatter(x=df_data['Mes'], y=df_data['Programado (%)'], name='Línea Base (PV)', line=dict(dash='dash')))
-        fig_rdo.add_trace(go.Scatter(x=df_data['Mes'], y=df_data['Físico Real (%)'], name='Valor Ganado (EV)', fill='tozeroy'))
-        fig_rdo.update_layout(height=300, margin=dict(t=20, b=20))
-        st.plotly_chart(fig_rdo, use_container_width=True)
-
-        # D. Administrativo
-        st.markdown("### D. Control Administrativo y Legal")
-        l1, l2, l3 = st.columns(3)
-        l1.text_input("16. Registro de Contratos Complementarios", "Ninguno")
-        l2.text_input("17. Registro de Ordenes de trabajo", "OT-2025-001")
-        l3.text_input("18. Registro de Incremento de cantidades de obra", "0.00%")
-
-        # E. Detalle y Firmas
-        st.markdown("### E. Detalle Diario y Evidencia")
-        st.text_area("13. Personal y Equipos", "Cuadrilla A: 1 Capataz, 3 Linieros. Equipo: Grúa Canasta.")
-        st.text_area("10. Actividades ejecutadas en el día", "Instalación de transformador de 50kVA.")
-        st.text_area("9. Observaciones de fiscalización", "Se solicita mejorar señalización vial.")
-        
-        st.markdown("**11. Registro fotográfico**")
-        st.file_uploader("Cargar Evidencia (Punto 11)", accept_multiple_files=True)
-
-        st.markdown("**12. Firmas de responsabilidad**")
-        c_sig1, c_sig2 = st.columns(2)
-        c_sig1.text_input("12. Firma: Fiscalizador (Usuario)", "Consorcio Fiscalred")
-        c_sig2.text_input("12. Firma: Contratista (Residente)", f"{ficha['Contratista']}")
-
-        st.form_submit_button("GUARDAR RDO DIARIO")
-
-# ==============================================================================
-# MÓDULO 2: DASHBOARD WEB (8 PUNTOS)
-# ==============================================================================
-elif modulo == "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)":
-    st.markdown(f'<div class="main-header">Módulo 2: Dashboard de Desempeño</div>', unsafe_allow_html=True)
-    
-    # 1. MOSTRAR LA TABLA ESTÁTICA AQUÍ TAMBIÉN
-    dibujar_ficha(ficha)
-
-    # 1. Fecha
-    st.markdown(f"#### 1. Fecha de emisión: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-
-    # 2. % Avance
-    st.markdown("#### 2. % de Avance Acumulado por componentes o por hitos y por proyecto")
-    k1, k2, k3 = st.columns(3)
-    val_real = df_data['Físico Real (%)'].iloc[5]
-    k1.metric("Avance Global", f"{val_real}%")
-    k2.metric("Hito Civil", f"{val_real-5}%")
-    k3.metric("Hito Eléctrico", f"{val_real+2}%")
-
-    st.markdown("---")
-
-    # Gráficos (Numerados)
-    col_izq, col_der = st.columns(2)
-
-    with col_izq:
-        st.subheader("3. Gráfico de Resumen de avance Global Acumulado")
-        fig3 = go.Figure()
-        fig3.add_trace(go.Scatter(x=df_data['Mes'], y=df_data['Físico Real (%)'], mode='lines+markers', name='Real Acumulado'))
-        st.plotly_chart(fig3, use_container_width=True)
-
-        st.subheader("5. Gráficos de Avance de Pagos (Acumulado)")
-        fig5 = px.line(df_data, x='Mes', y='Acumulado ($)', markers=True)
-        fig5.update_traces(line_color='green')
-        st.plotly_chart(fig5, use_container_width=True)
-
-        st.subheader("7. Gráfico de Pagos mensuales (Planillas)")
-        fig7 = px.bar(df_data, x='Mes', y='Devengo ($)', color='Devengo ($)')
-        st.plotly_chart(fig7, use_container_width=True)
-
-    with col_der:
-        st.subheader("4. Gráfico de Avance físico total por proyecto por mes")
-        fig4 = px.bar(df_data, x='Mes', y='Físico Real (%)', title="Evolución Mensual")
-        st.plotly_chart(fig4, use_container_width=True)
-
-        st.subheader("6. Gráfico de Avance porcentual y en dólares")
-        fig6 = go.Figure()
-        fig6.add_trace(go.Scatter(x=df_data['Mes'], y=df_data['Físico Real (%)'], name='% Avance', yaxis='y1'))
-        fig6.add_trace(go.Scatter(x=df_data['Mes'], y=df_data['Acumulado ($)'], name='$ Dólares', yaxis='y2', line=dict(dash='dot')))
-        fig6.update_layout(yaxis=dict(title="%"), yaxis2=dict(title="$", overlaying='y', side='right'))
-        st.plotly_chart(fig6, use_container_width=True)
-
-        st.subheader("8. Gráfico de Devengo de anticipo")
-        fig8 = px.area(df_data, x='Mes', y='Anticipo ($)')
-        fig8.update_layout(title="Amortización Anticipo")
-        st.plotly_chart(fig8, use_container_width=True)
-
-
-
-
-
+        # CORRECCIÓN: Usamos number_input para permitir edición
+        input_pct = m1.number_
