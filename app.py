@@ -7,7 +7,7 @@ from datetime import datetime, date
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(layout="wide", page_title="SISTEMA DE GESTIÓN RDO & DASHBOARD", page_icon="⚡")
 
-# --- FUNCIÓN DE RESETEO (NUEVA) ---
+# --- FUNCIÓN DE RESETEO ---
 def reset_app():
     for key in ['data_zona1', 'data_zona2']:
         if key in st.session_state:
@@ -24,7 +24,7 @@ if 'data_zona1' not in st.session_state:
         'Inversión Diaria ($)': [0.0],
         'Físico Acum (%)': [0.0],
         'Financiero Acum ($)': [0.0],
-        'Saldo ($)': [0.0], # Se recalcula dinámicamente
+        'Saldo ($)': [0.0], 
         'Detalle': ['Inicio de Contrato'],
         'Fotos': [0]
     })
@@ -48,7 +48,7 @@ if 'pagina_actual' not in st.session_state:
 def cambiar_pagina(nombre_pagina):
     st.session_state.pagina_actual = nombre_pagina
 
-# --- ESTILOS VISUALES ---
+# --- ESTILOS VISUALES GENERALES ---
 st.markdown("""
 <style>
     .main-header {font-size: 24px; font-weight: bold; color: #1E3A8A; margin-bottom: 10px;}
@@ -61,7 +61,6 @@ st.markdown("""
     .ficha-tecnica th {background-color: #1E3A8A; color: white; padding: 6px; text-align: left; border: 1px solid #ddd;}
     .ficha-tecnica td {padding: 6px; border: 1px solid #ddd; background-color: #f9f9f9; color: #333;}
     
-    /* Botón Reset */
     div.stButton > button:first-child {
         border-radius: 5px;
     }
@@ -88,7 +87,6 @@ modulo = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-# BOTÓN DE RESETEO
 if st.sidebar.button("🗑️ RESETEAR RDO Y DASHBOARD", help="Borra todos los datos y reinicia a cero"):
     reset_app()
 
@@ -162,7 +160,6 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
     key_data = 'data_zona1' if contrato_seleccionado == "ZONA 1 - SECTOR CAMARONERO" else 'data_zona2'
     df_actual = st.session_state[key_data]
     
-    # OBTENER ACUMULADO ANTERIOR (Del último registro)
     if len(df_actual) > 0:
         ultimo_reg = df_actual.iloc[-1]
         prev_pct_acum = float(ultimo_reg['Físico Acum (%)'])
@@ -171,43 +168,28 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
         prev_pct_acum = 0.0
         prev_monto_acum = 0.0
 
-    # --- MODO EDICIÓN ---
     modo_edicion = st.checkbox("🔓 Modificar Registro Anterior (Corrección)")
     
     defaults = {
-        "fecha": date.today(),
-        "dia_n": "",
-        "clima_idx": 0,
-        "incidente_idx": 0,
-        "pct_diario": 0.0,
-        "monto_diario": 0.0,
-        "cpi": 0.0,
-        "spi": 0.0,
-        "personal": "",
-        "actividad": "",
-        "firma": ""
+        "fecha": date.today(), "dia_n": "", "clima_idx": 0, "incidente_idx": 0,
+        "pct_diario": 0.0, "monto_diario": 0.0, "cpi": 0.0, "spi": 0.0,
+        "personal": "", "actividad": "", "firma": ""
     }
     indice_a_editar = -1
 
     if modo_edicion:
         st.info("⚠️ MODO EDICIÓN: Seleccione el día a corregir.")
-        # Filtrar solo registros válidos (ignorar fila 0 de inicio)
         df_validos = df_actual.iloc[1:]
         opciones = df_validos['Fecha'].astype(str) + " - " + df_validos['Día N']
         
         if not opciones.empty:
             seleccion = st.selectbox("Seleccione Registro:", opciones)
-            # Buscar índice real en el dataframe completo
-            # Recalculamos el índice basado en la selección
             fecha_sel_str = seleccion.split(" - ")[0]
             dia_sel = seleccion.split(" - ")[1]
-            
-            # Encontrar el índice en el DF original
             mask = (df_actual['Fecha'].astype(str) == fecha_sel_str) & (df_actual['Día N'] == dia_sel)
             if mask.any():
                 indice_a_editar = df_actual[mask].index[0]
                 fila = df_actual.loc[indice_a_editar]
-                
                 defaults["fecha"] = fila['Fecha']
                 defaults["dia_n"] = fila['Día N']
                 defaults["pct_diario"] = float(fila['Físico Diario (%)'])
@@ -215,8 +197,6 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
                 defaults["actividad"] = fila['Detalle']
                 defaults["personal"] = "Personal registrado..." 
                 defaults["firma"] = "Ing. Cristhian San Martin"
-                
-                # En edición, el "previo" es el acumulado del registro ANTERIOR al que edito
                 idx_prev = indice_a_editar - 1
                 if idx_prev >= 0:
                     prev_pct_acum = df_actual.iloc[idx_prev]['Físico Acum (%)']
@@ -227,9 +207,7 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
         else:
             st.warning("No hay registros para editar.")
 
-    # --- FORMULARIO ---
     with st.form("rdo_form", clear_on_submit=False):
-        
         st.markdown("### A. Datos Generales")
         c1, c2 = st.columns(2)
         in_fecha = c1.date_input("1. Fechas de Ejecución", defaults["fecha"])
@@ -246,17 +224,12 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
 
         st.markdown("### C. Control de Avance")
         st.info(f"**6. Progreso General (Ingreso de Avance del DÍA):**")
-        
         m1, m2, m3 = st.columns(3)
-        # INPUTS SON AHORA DIARIOS
         in_pct_diario = m1.number_input("6.i. % de Avance DEL DÍA", min_value=0.0, max_value=100.0, value=defaults["pct_diario"], step=0.01)
         in_monto_diario = m2.number_input("6.i. $ de Avance DEL DÍA", min_value=0.0, value=defaults["monto_diario"], step=100.0)
         
-        # CÁLCULOS EN TIEMPO REAL PARA VISUALIZACIÓN
         nuevo_acum_monto = prev_monto_acum + in_monto_diario
         nuevo_saldo = ficha['Monto_Num'] - nuevo_acum_monto
-        
-        # MÉTRICA: Muestra el acumulado actualizado en línea
         m3.metric("6.i. Avance Avaluado Acumulado (Automático)", f"$ {nuevo_acum_monto:,.2f}", f"Saldo: $ {nuevo_saldo:,.2f}")
 
         st.markdown("**6.ii. Avance prorrateado por Hito**")
@@ -266,8 +239,8 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
         
         st.markdown("**7. Indicadores de Desempeño y estimaciones**")
         col_c, col_s = st.columns(2)
-        in_cpi = col_c.number_input("7. CPI (Costo)", value=defaults["cpi"], step=0.01, help=">1: Ahorro")
-        in_spi = col_s.number_input("7. SPI (Cronograma)", value=defaults["spi"], step=0.01, help=">1: Adelantado")
+        in_cpi = col_c.number_input("7. CPI (Costo)", value=defaults["cpi"], step=0.01)
+        in_spi = col_s.number_input("7. SPI (Cronograma)", value=defaults["spi"], step=0.01)
         
         cc1, cc2 = st.columns(2)
         cc1.selectbox("14. Control mediante Tabla de cantidades y Reporte", ["", "SI - Verificado", "NO"], index=0)
@@ -275,7 +248,6 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
 
         st.markdown("**8. Curva de Avance – Valor Ganado**")
         fig_rdo = go.Figure()
-        # Muestra visualmente cómo crece el acumulado
         fig_rdo.add_trace(go.Bar(x=["Anterior", "Nuevo"], y=[prev_pct_acum, prev_pct_acum + in_pct_diario], name='Crecimiento'))
         fig_rdo.update_layout(height=150, margin=dict(t=10, b=10))
         st.plotly_chart(fig_rdo, use_container_width=True)
@@ -298,11 +270,8 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
         btn_label = "GUARDAR CAMBIOS" if modo_edicion else "GUARDAR RDO DIARIO"
         submitted = st.form_submit_button(btn_label)
     
-    # --- VALIDACIÓN Y GUARDADO ---
     if submitted:
         errores = []
-        
-        # 1. VALIDACIÓN CAMPOS
         if not in_dia: errores.append("• Falta: 4. Día de ejecución")
         if in_clima == "": errores.append("• Falta: 5. Condiciones climáticas")
         if not in_personal: errores.append("• Falta: 13. Personal y Equipos")
@@ -310,48 +279,34 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
         if not in_firma: errores.append("• Falta: 12. Firmas de responsabilidad")
         if not modo_edicion and not in_fotos: errores.append("• Falta: 11. Registro fotográfico")
         
-        # 2. VALIDACIÓN FECHA ÚNICA
         if not modo_edicion:
             fechas_existentes = df_actual['Fecha'].tolist()
-            # Ignoramos la primera fecha de inicialización si es dummy
             if len(fechas_existentes) > 1 and in_fecha in fechas_existentes[1:]:
-                 errores.append(f"⛔ LA FECHA {in_fecha.strftime('%d/%m/%Y')} YA EXISTE.\n   ➡️ Use 'Modificar Registro Anterior' si desea corregirla.")
+                 errores.append(f"⛔ LA FECHA {in_fecha.strftime('%d/%m/%Y')} YA EXISTE.")
 
         if errores:
             st.error("⚠️ NO SE PUDO GUARDAR. REVISE:")
-            for e in errores:
-                st.write(e)
+            for e in errores: st.write(e)
         else:
-            # 3. CÁLCULOS MATEMÁTICOS DE ACUMULADO
-            # Nuevo Acumulado = Anterior + Diario
             final_pct_acum = prev_pct_acum + in_pct_diario
             final_monto_acum = prev_monto_acum + in_monto_diario
             final_saldo = ficha['Monto_Num'] - final_monto_acum
-
-            # Asegurar no exceder 100% o el monto total por errores de dedo
             if final_pct_acum > 100: final_pct_acum = 100.0
             if final_monto_acum > ficha['Monto_Num']: final_monto_acum = ficha['Monto_Num']
 
             nueva_fila = {
-                'Fecha': in_fecha,
-                'Día N': in_dia,
-                'Físico Diario (%)': in_pct_diario,
-                'Inversión Diaria ($)': in_monto_diario,
-                'Físico Acum (%)': final_pct_acum,
-                'Financiero Acum ($)': final_monto_acum,
-                'Saldo ($)': final_saldo,
-                'Detalle': in_activ,
-                'Fotos': len(in_fotos) if in_fotos else 0
+                'Fecha': in_fecha, 'Día N': in_dia, 'Físico Diario (%)': in_pct_diario,
+                'Inversión Diaria ($)': in_monto_diario, 'Físico Acum (%)': final_pct_acum,
+                'Financiero Acum ($)': final_monto_acum, 'Saldo ($)': final_saldo,
+                'Detalle': in_activ, 'Fotos': len(in_fotos) if in_fotos else 0
             }
 
             if modo_edicion:
-                # Actualizar Fila
                 for col, val in nueva_fila.items():
                     df_actual.at[indice_a_editar, col] = val
                 st.session_state[key_data] = df_actual
                 st.success(f"✅ REGISTRO '{in_dia}' CORREGIDO.")
             else:
-                # Agregar Nueva Fila
                 df_nuevo = pd.concat([df_actual, pd.DataFrame([nueva_fila])], ignore_index=True)
                 st.session_state[key_data] = df_nuevo
                 st.success(f"✅ REGISTRO DEL DÍA {in_fecha} GUARDADO.")
@@ -370,42 +325,37 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
 elif modulo == "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)":
     st.markdown(f'<div class="main-header">Módulo 2: Dashboard de Desempeño</div>', unsafe_allow_html=True)
     
-    # --- BOTÓN DE IMPRESIÓN (ESTILO INTEGRADO) ---
+    # --- AQUÍ ESTÁ LA MAGIA PARA IMPRIMIR ---
+    # Este bloque CSS oculta botones, sidebar y menús SOLO cuando presionas Ctrl+P
     st.markdown("""
     <style>
+    .print-instruction {
+        background-color: #f0f2f6; border-left: 5px solid #1E3A8A;
+        padding: 10px; margin-bottom: 20px; border-radius: 5px; color: #333;
+    }
     @media print {
-        /* Ocultar barra lateral, header, footer y botones de streamlit al imprimir */
-        section[data-testid="stSidebar"], 
-        header, 
-        footer, 
-        .stAppDeployButton,
-        div.stButton {
+        section[data-testid="stSidebar"], header, footer, .stAppDeployButton, #MainMenu, .stButton, .print-instruction {
             display: none !important;
         }
-        /* Ajustar el ancho del contenido principal */
-        section.main > div {
-            width: 100% !important;
-            padding: 0 !important;
+        .block-container {
+            padding: 0 !important; max-width: 100% !important;
+        }
+        * {
+            -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        }
+        div[data-testid="stMarkdownContainer"], div[data-testid="stDataFrame"], .plotly-graph-div {
+            page-break-inside: avoid !important;
         }
     }
     </style>
-    """, unsafe_allow_html=True)
-
-    # Botón que invoca la impresión del navegador
-    st.markdown("""
-    <div style="text-align: right; margin-bottom: 10px;">
-        <button onclick="window.print()" style="
-            background-color: #ef4444; 
-            color: white; 
-            border: none; 
-            padding: 10px 20px; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            font-weight: bold;">
-            🖨️ Imprimir Reporte en PDF
-        </button>
+    
+    <div class="print-instruction">
+        ℹ️ <strong>Para exportar a PDF:</strong><br>
+        Presione las teclas <kbd>Ctrl</kbd> + <kbd>P</kbd> (o Cmd+P).<br>
+        En la ventana de impresión, elija "Guardar como PDF".
     </div>
     """, unsafe_allow_html=True)
+    # ----------------------------------------
 
     dibujar_ficha(ficha)
     st.markdown(f"#### 1. Fecha de emisión: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
@@ -413,29 +363,21 @@ elif modulo == "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)":
     key_data = 'data_zona1' if contrato_seleccionado == "ZONA 1 - SECTOR CAMARONERO" else 'data_zona2'
     df_dashboard = st.session_state[key_data].copy()
 
-    # Omitir fila 0 de inicialización
     if len(df_dashboard) > 1:
         df_final = df_dashboard.iloc[1:].reset_index(drop=True)
     else:
-        # Si no hay datos, mostrar tabla vacía con estructura
         df_final = pd.DataFrame(columns=['Fecha', 'Día N', 'Físico Diario (%)', 'Inversión Diaria ($)', 'Físico Acum (%)', 'Financiero Acum ($)', 'Saldo ($)'])
-        # Inicializar saldo visual con el monto total
         df_final.loc[0] = [date.today(), 'Inicio', 0, 0, 0, 0, ficha['Monto_Num']]
 
     st.markdown("### 2. % de Avance Acumulado (Tabla Detallada)")
     cols_mostrar = ['Fecha', 'Día N', 'Físico Diario (%)', 'Inversión Diaria ($)', 'Físico Acum (%)', 'Financiero Acum ($)', 'Saldo ($)']
     
-    # Renderizar Tabla
     st.dataframe(
         df_final[cols_mostrar].style.format({
-            'Físico Diario (%)': "{:.2f}%",
-            'Inversión Diaria ($)': "$ {:,.2f}",
-            'Físico Acum (%)': "{:.2f}%",
-            'Financiero Acum ($)': "$ {:,.2f}",
-            'Saldo ($)': "$ {:,.2f}"
+            'Físico Diario (%)': "{:.2f}%", 'Inversión Diaria ($)': "$ {:,.2f}",
+            'Físico Acum (%)': "{:.2f}%", 'Financiero Acum ($)': "$ {:,.2f}", 'Saldo ($)': "$ {:,.2f}"
         }),
-        use_container_width=True,
-        height=300
+        use_container_width=True, height=300
     )
 
     st.markdown("---")
