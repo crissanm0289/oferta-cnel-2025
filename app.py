@@ -12,7 +12,7 @@ st.set_page_config(layout="wide", page_title="SISTEMA DE GESTIÓN RDO & DASHBOAR
 ID_HOJA_CALCULO = "1Tfr-YxL5pb5B0a8GhUFsm70cQJ1UJagtWMbYMzfJQg0"
 
 # REEMPLAZA AQUÍ: Pega la URL larga que te dio Google Apps Script al implementar (PASO 2)
-URL_WEB_APP_GOOGLE = "TU_URL_DE_APPS_SCRIPT_AQUI"
+URL_WEB_APP_GOOGLE = "https://script.google.com/macros/s/AKfycbzzHx4BTrDXr0M4K2-gaMHQDtCPD6V5huY84SxflRNilao38lpoG7u6wQYzqBpecSo_/exec"
 
 # --- GESTIÓN DE MEMORIA E INICIALIZACIÓN ---
 if 'logged_in' not in st.session_state:
