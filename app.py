@@ -48,6 +48,9 @@ if 'pagina_actual' not in st.session_state:
 def cambiar_pagina(nombre_pagina):
     st.session_state.pagina_actual = nombre_pagina
 
+if 'logged_in' not in st.session_state:
+    st.session_state['logged_in'] = False
+
 # --- ESTILOS VISUALES GENERALES ---
 st.markdown("""
 <style>
@@ -75,21 +78,49 @@ contrato_seleccionado = st.sidebar.selectbox(
     "Seleccione el Contrato/Zona:",
     ["ZONA 1 - SECTOR CAMARONERO", "ZONA 2 - SECTOR CAMARONERO"]
 )
-
 st.sidebar.markdown("---")
 
-modulo = st.sidebar.radio(
-    "Navegación:", 
-    ["MÓDULO 1: RDO (Lista de 19 Puntos)", "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)"],
-    index=0 if st.session_state.pagina_actual == "MÓDULO 1: RDO (Lista de 19 Puntos)" else 1,
-    key="navegacion_radio",
-    on_change=lambda: cambiar_pagina(st.session_state.navegacion_radio)
-)
+# LÓGICA DE INICIO DE SESIÓN
+if not st.session_state['logged_in']:
+    st.sidebar.markdown("### 🔒 Acceso Administrativo")
+    correo = st.sidebar.text_input("Correo Electrónico")
+    clave = st.sidebar.text_input("Contraseña", type="password")
+    
+    if st.sidebar.button("Ingresar"):
+        # AQUÍ DEFINES TU CORREO Y CLAVE
+        if correo == "cristhian@fiscalred.com" and clave == "admin123":
+            st.session_state['logged_in'] = True
+            st.rerun()
+        else:
+            st.sidebar.error("Credenciales incorrectas")
+    
+    st.sidebar.info("👀 Modo Visualizador Activo. Inicie sesión para editar o ingresar datos.")
+    # Forzamos a que el usuario sin sesión solo vea el Dashboard
+    modulo = "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)"
+
+else:
+    # EL USUARIO HA INICIADO SESIÓN (MODO EDITOR)
+    st.sidebar.success("🔓 Sesión iniciada")
+    
+    modulo = st.sidebar.radio(
+        "Navegación:", 
+        ["MÓDULO 1: RDO (Lista de 19 Puntos)", "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)"],
+        index=0 if st.session_state.pagina_actual == "MÓDULO 1: RDO (Lista de 19 Puntos)" else 1,
+        key="navegacion_radio",
+        on_change=lambda: cambiar_pagina(st.session_state.navegacion_radio)
+    )
+
+    st.sidebar.markdown("---")
+    if st.sidebar.button("🗑️ RESETEAR RDO Y DASHBOARD", help="Borra todos los datos y reinicia a cero"):
+        reset_app()
+        
+    st.sidebar.markdown("---")
+    if st.sidebar.button("Cerrar Sesión"):
+        st.session_state['logged_in'] = False
+        st.session_state.pagina_actual = "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)"
+        st.rerun()
 
 st.sidebar.markdown("---")
-if st.sidebar.button("🗑️ RESETEAR RDO Y DASHBOARD", help="Borra todos los datos y reinicia a cero"):
-    reset_app()
-
 st.sidebar.info(f"**Oferente:** Consorcio FiscalRed\n**Usuario:** Ing. Cristhian San Martin")
 
 # --- FICHA TÉCNICA ---
