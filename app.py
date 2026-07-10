@@ -3,53 +3,32 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 from datetime import datetime, date
+import requests
 
 # --- CONFIGURACIÓN DE LA PÁGINA ---
 st.set_page_config(layout="wide", page_title="SISTEMA DE GESTIÓN RDO & DASHBOARD", page_icon="⚡")
 
-# --- FUNCIÓN DE RESETEO ---
-def reset_app():
-    for key in ['data_zona1', 'data_zona2']:
-        if key in st.session_state:
-            del st.session_state[key]
-    st.session_state.pagina_actual = "MÓDULO 1: RDO (Lista de 19 Puntos)"
-    st.rerun()
+# --- CONFIGURACIÓN DE TU BASE DE DATOS (GOOGLE SHEETS) ---
+ID_HOJA_CALCULO = "1Tfr-YxL5pb5B0a8GhUFsm70cQJ1UJagtWMbYMzfJQg0"
 
-# --- GESTIÓN DE MEMORIA (INICIALIZACIÓN) ---
-if 'data_zona1' not in st.session_state:
-    st.session_state['data_zona1'] = pd.DataFrame({
-        'Fecha': [date(2025, 1, 1)],
-        'Día N': ['Inicio'],
-        'Físico Diario (%)': [0.0],
-        'Inversión Diaria ($)': [0.0],
-        'Físico Acum (%)': [0.0],
-        'Financiero Acum ($)': [0.0],
-        'Saldo ($)': [0.0], 
-        'Detalle': ['Inicio de Contrato'],
-        'Fotos': [0]
-    })
+# REEMPLAZA AQUÍ: Pega la URL larga que te dio Google Apps Script al implementar (PASO 2)
+URL_WEB_APP_GOOGLE = "TU_URL_DE_APPS_SCRIPT_AQUI"
 
-if 'data_zona2' not in st.session_state:
-    st.session_state['data_zona2'] = pd.DataFrame({
-        'Fecha': [date(2025, 1, 1)],
-        'Día N': ['Inicio'],
-        'Físico Diario (%)': [0.0],
-        'Inversión Diaria ($)': [0.0],
-        'Físico Acum (%)': [0.0],
-        'Financiero Acum ($)': [0.0],
-        'Saldo ($)': [0.0],
-        'Detalle': ['Inicio de Contrato'],
-        'Fotos': [0]
-    })
+# --- GESTIÓN DE MEMORIA E INICIALIZACIÓN ---
+if 'logged_in' not in st.session_state:
+    st.session_state['logged_in'] = False
 
 if 'pagina_actual' not in st.session_state:
-    st.session_state.pagina_actual = "MÓDULO 1: RDO (Lista de 19 Puntos)"
+    st.session_state.pagina_actual = "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)"
 
 def cambiar_pagina(nombre_pagina):
     st.session_state.pagina_actual = nombre_pagina
 
-if 'logged_in' not in st.session_state:
-    st.session_state['logged_in'] = False
+def reset_app():
+    if 'logged_in' in st.session_state:
+        st.session_state['logged_in'] = False
+    st.session_state.pagina_actual = "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)"
+    st.rerun()
 
 # --- ESTILOS VISUALES GENERALES ---
 st.markdown("""
@@ -61,7 +40,7 @@ st.markdown("""
     .ficha-tecnica {
         width: 100%; border-collapse: collapse; margin-bottom: 20px; font-family: Arial, sans-serif; font-size: 12px; border: 1px solid #ddd;
     }
-    .ficha-tecnica th {background-color: #1E3A8A; color: white; padding: 6px; text-align: left; border: 1px solid #ddd;}
+    .ficha-tecnica th {background-color: #1E3A8A; color: white; padding: 6px; text-align: center; border: 1px solid #ddd;}
     .ficha-tecnica td {padding: 6px; border: 1px solid #ddd; background-color: #f9f9f9; color: #333;}
     
     div.stButton > button:first-child {
@@ -80,28 +59,27 @@ contrato_seleccionado = st.sidebar.selectbox(
 )
 st.sidebar.markdown("---")
 
-# LÓGICA DE INICIO DE SESIÓN
+# DETERMINAR LA PESTAÑA DE LECTURA SEGÚN LA ZONA
+nombre_pestaña = "ZONA_1" if contrato_seleccionado == "ZONA 1 - SECTOR CAMARONERO" else "ZONA_2"
+
+# CONTROL DE ACCESOS Y MENÚ
 if not st.session_state['logged_in']:
     st.sidebar.markdown("### 🔒 Acceso Administrativo")
     correo = st.sidebar.text_input("Correo Electrónico")
     clave = st.sidebar.text_input("Contraseña", type="password")
     
     if st.sidebar.button("Ingresar"):
-        # AQUÍ DEFINES TU CORREO Y CLAVE
         if correo == "cristhian@fiscalred.com" and clave == "admin123":
             st.session_state['logged_in'] = True
+            st.session_state.pagina_actual = "MÓDULO 1: RDO (Lista de 19 Puntos)"
             st.rerun()
         else:
             st.sidebar.error("Credenciales incorrectas")
-    
-    st.sidebar.info("👀 Modo Visualizador Activo. Inicie sesión para editar o ingresar datos.")
-    # Forzamos a que el usuario sin sesión solo vea el Dashboard
+            
+    st.sidebar.info("👀 Modo Visualizador Activo. Inicie sesión para ingresar o editar datos del RDO.")
     modulo = "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)"
-
 else:
-    # EL USUARIO HA INICIADO SESIÓN (MODO EDITOR)
     st.sidebar.success("🔓 Sesión iniciada")
-    
     modulo = st.sidebar.radio(
         "Navegación:", 
         ["MÓDULO 1: RDO (Lista de 19 Puntos)", "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)"],
@@ -109,12 +87,9 @@ else:
         key="navegacion_radio",
         on_change=lambda: cambiar_pagina(st.session_state.navegacion_radio)
     )
-
     st.sidebar.markdown("---")
-    if st.sidebar.button("🗑️ RESETEAR RDO Y DASHBOARD", help="Borra todos los datos y reinicia a cero"):
+    if st.sidebar.button("🗑️ RESETEAR SESIÓN", help="Cierra sesión y limpia los estados de la app"):
         reset_app()
-        
-    st.sidebar.markdown("---")
     if st.sidebar.button("Cerrar Sesión"):
         st.session_state['logged_in'] = False
         st.session_state.pagina_actual = "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)"
@@ -122,6 +97,17 @@ else:
 
 st.sidebar.markdown("---")
 st.sidebar.info(f"**Oferente:** Consorcio FiscalRed\n**Usuario:** Ing. Cristhian San Martin")
+
+# --- LECTURA EN TIEMPO REAL DESDE GOOGLE SHEETS ---
+url_csv = f"https://docs.google.com/spreadsheets/d/{ID_HOJA_CALCULO}/gviz/tq?tqx=out:csv&sheet={nombre_pestaña}"
+try:
+    df_actual = pd.read_csv(url_csv)
+except Exception:
+    df_actual = pd.DataFrame({
+        'Fecha': ['2025-01-01'], 'Día N': ['Inicio'], 'Físico Diario (%)': [0.0],
+        'Inversión Diaria ($)': [0.0], 'Físico Acum (%)': [0.0], 'Financiero Acum ($)': [0.0],
+        'Saldo ($)': [0.0], 'Detalle': ['Inicio de Contrato'], 'Fotos': [0]
+    })
 
 # --- FICHA TÉCNICA ---
 def obtener_ficha_tecnica(zona):
@@ -159,7 +145,7 @@ ficha = obtener_ficha_tecnica(contrato_seleccionado)
 def dibujar_ficha(datos):
     html_table = f"""
     <table class="ficha-tecnica">
-        <tr><th colspan="4" style="text-align:center;">FICHA TÉCNICA DEL PROYECTO (CONTRATO DE OBRA)</th></tr>
+        <tr><th colspan="4">FICHA TÉCNICA DEL PROYECTO (CONTRATO DE OBRA)</th></tr>
         <tr>
             <td width="15%"><strong>Entidad:</strong></td><td width="35%">{datos['Entidad']}</td>
             <td width="15%"><strong>Categoría:</strong></td><td width="35%">{datos['Categoría']}</td>
@@ -177,7 +163,7 @@ def dibujar_ficha(datos):
         </tr>
         <tr>
             <td><strong>Monto USD:</strong></td><td>{datos['Monto_Str']}</td>
-            <td><strong>Link:</strong></td><td><a href="{datos['Link']}" target="_blank">Ver en SERCOP</a></td>
+            <td><strong>Link SERCOP:</strong></td><td><a href="{datos['Link']}" target="_blank">Ver en SERCOP</a></td>
         </tr>
         <tr>
             <td><strong>Nube Drive:</strong></td><td colspan="3"><a href="{datos['Drive']}" target="_blank">📂 Acceder a los respaldos en Google Drive</a></td>
@@ -193,13 +179,14 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
     st.markdown(f'<div class="main-header">Módulo 1: Registro Diario de Obra (RDO)</div>', unsafe_allow_html=True)
     dibujar_ficha(ficha)
 
-    key_data = 'data_zona1' if contrato_seleccionado == "ZONA 1 - SECTOR CAMARONERO" else 'data_zona2'
-    df_actual = st.session_state[key_data]
-    
     if len(df_actual) > 0:
         ultimo_reg = df_actual.iloc[-1]
-        prev_pct_acum = float(ultimo_reg['Físico Acum (%)'])
-        prev_monto_acum = float(ultimo_reg['Financiero Acum ($)'])
+        try:
+            prev_pct_acum = float(ultimo_reg['Físico Acum (%)'])
+            prev_monto_acum = float(ultimo_reg['Financiero Acum ($)'])
+        except Exception:
+            prev_pct_acum = 0.0
+            prev_monto_acum = 0.0
     else:
         prev_pct_acum = 0.0
         prev_monto_acum = 0.0
@@ -209,39 +196,41 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
     defaults = {
         "fecha": date.today(), "dia_n": "", "clima_idx": 0, "incidente_idx": 0,
         "pct_diario": 0.0, "monto_diario": 0.0, "cpi": 0.0, "spi": 0.0,
-        "personal": "", "actividad": "", "firma": ""
+        "personal": "", "actividad": "", "firma": "Ing. Cristhian San Martin"
     }
     indice_a_editar = -1
 
     if modo_edicion:
-        st.info("⚠️ MODO EDICIÓN: Seleccione el día a corregir.")
-        df_validos = df_actual.iloc[1:]
-        opciones = df_validos['Fecha'].astype(str) + " - " + df_validos['Día N']
+        st.info("⚠️ MODO EDICIÓN HISTÓRICA ACTIVO")
+        df_validos = df_actual.iloc[1:] if len(df_actual) > 1 else df_actual
+        opciones = df_validos['Fecha'].astype(str) + " - " + df_validos['Día N'].astype(str)
         
         if not opciones.empty:
-            seleccion = st.selectbox("Seleccione Registro:", opciones)
+            seleccion = st.selectbox("Seleccione Registro a corregir:", opciones)
             fecha_sel_str = seleccion.split(" - ")[0]
             dia_sel = seleccion.split(" - ")[1]
-            mask = (df_actual['Fecha'].astype(str) == fecha_sel_str) & (df_actual['Día N'] == dia_sel)
+            mask = (df_actual['Fecha'].astype(str) == fecha_sel_str) & (df_actual['Día N'].astype(str) == dia_sel)
             if mask.any():
                 indice_a_editar = df_actual[mask].index[0]
                 fila = df_actual.loc[indice_a_editar]
-                defaults["fecha"] = fila['Fecha']
-                defaults["dia_n"] = fila['Día N']
+                try:
+                    defaults["fecha"] = datetime.strptime(str(fila['Fecha']), '%Y-%m-%d').date()
+                except Exception:
+                    defaults["fecha"] = date.today()
+                defaults["dia_n"] = str(fila['Día N'])
                 defaults["pct_diario"] = float(fila['Físico Diario (%)'])
                 defaults["monto_diario"] = float(fila['Inversión Diaria ($)'])
-                defaults["actividad"] = fila['Detalle']
-                defaults["personal"] = "Personal registrado..." 
-                defaults["firma"] = "Ing. Cristhian San Martin"
+                defaults["actividad"] = str(fila['Detalle'])
+                
                 idx_prev = indice_a_editar - 1
                 if idx_prev >= 0:
-                    prev_pct_acum = df_actual.iloc[idx_prev]['Físico Acum (%)']
-                    prev_monto_acum = df_actual.iloc[idx_prev]['Financiero Acum ($)']
+                    prev_pct_acum = float(df_actual.iloc[idx_prev]['Físico Acum (%)'])
+                    prev_monto_acum = float(df_actual.iloc[idx_prev]['Financiero Acum ($)'])
                 else:
                     prev_pct_acum = 0.0
                     prev_monto_acum = 0.0
         else:
-            st.warning("No hay registros para editar.")
+            st.warning("No hay registros suficientes para editar.")
 
     with st.form("rdo_form", clear_on_submit=False):
         st.markdown("### A. Datos Generales")
@@ -295,7 +284,7 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
         l3.text_input("18. Registro de Incremento de cantidades", "0.00%")
 
         in_personal = st.text_area("13. Personal y Equipos (Obligatorio)", defaults["personal"], placeholder="Detalle cuadrilla...")
-        in_activ = st.text_area("10. Actividades ejecutadas en el día (Obligatorio)", defaults["actividad"], placeholder="Descripción...")
+        in_activ = st.text_area("10. Actividades ejecutadas in el día (Obligatorio)", defaults["actividad"], placeholder="Descripción...")
         st.text_area("9. Observaciones de fiscalización", "")
 
         st.markdown("**11. Registro fotográfico & 12. Firmas**")
@@ -303,7 +292,7 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
         in_fotos = c_foto.file_uploader("11. Registro fotográfico (Obligatorio)", accept_multiple_files=True)
         in_firma = c_firma.text_input("12. Firmas de responsabilidad (Obligatorio)", defaults["firma"])
 
-        btn_label = "GUARDAR CAMBIOS" if modo_edicion else "GUARDAR RDO DIARIO"
+        btn_label = "ENVIAR MODIFICACIÓN HISTÓRICA" if modo_edicion else "GUARDAR RDO DIARIO"
         submitted = st.form_submit_button(btn_label)
     
     if submitted:
@@ -316,8 +305,8 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
         if not modo_edicion and not in_fotos: errores.append("• Falta: 11. Registro fotográfico")
         
         if not modo_edicion:
-            fechas_existentes = df_actual['Fecha'].tolist()
-            if len(fechas_existentes) > 1 and in_fecha in fechas_existentes[1:]:
+            fechas_existentes = df_actual['Fecha'].astype(str).tolist()
+            if len(fechas_existentes) > 1 and str(in_fecha) in fechas_existentes[1:]:
                  errores.append(f"⛔ LA FECHA {in_fecha.strftime('%d/%m/%Y')} YA EXISTE.")
 
         if errores:
@@ -330,30 +319,33 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
             if final_pct_acum > 100: final_pct_acum = 100.0
             if final_monto_acum > ficha['Monto_Num']: final_monto_acum = ficha['Monto_Num']
 
-            nueva_fila = {
-                'Fecha': in_fecha, 'Día N': in_dia, 'Físico Diario (%)': in_pct_diario,
-                'Inversión Diaria ($)': in_monto_diario, 'Físico Acum (%)': final_pct_acum,
-                'Financiero Acum ($)': final_monto_acum, 'Saldo ($)': final_saldo,
-                'Detalle': in_activ, 'Fotos': len(in_fotos) if in_fotos else 0
+            datos_nuevos = {
+                "zona": nombre_pestaña,
+                "fecha": str(in_fecha),
+                "dia_n": in_dia,
+                "pct_diario": float(in_pct_diario),
+                "monto_diario": float(in_monto_diario),
+                "pct_acum": float(final_pct_acum),
+                "monto_acum": float(final_monto_acum),
+                "saldo": float(final_saldo),
+                "detalle": in_activ,
+                "fotos": len(in_fotos) if in_fotos else 0
             }
 
-            if modo_edicion:
-                for col, val in nueva_fila.items():
-                    df_actual.at[indice_a_editar, col] = val
-                st.session_state[key_data] = df_actual
-                st.success(f"✅ REGISTRO '{in_dia}' CORREGIDO.")
-            else:
-                df_nuevo = pd.concat([df_actual, pd.DataFrame([nueva_fila])], ignore_index=True)
-                st.session_state[key_data] = df_nuevo
-                st.success(f"✅ REGISTRO DEL DÍA {in_fecha} GUARDADO.")
-
-            st.markdown("---")
-            c_msg, c_btn = st.columns([3, 1])
-            c_msg.info("Base de datos actualizada.")
-            if c_btn.button("👉 Ir al DASHBOARD"):
-                st.session_state.navegacion_radio = "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)"
-                cambiar_pagina("MÓDULO 2: DASHBOARD (Lista de 8 Puntos)")
-                st.rerun()
+            with st.spinner("Guardando en la nube de forma segura..."):
+                try:
+                    if URL_WEB_APP_GOOGLE == "TU_URL_DE_APPS_SCRIPT_AQUI":
+                        st.error("❌ Por favor, inserta tu URL de Google Apps Script en la línea 16.")
+                    else:
+                        respuesta = requests.post(URL_WEB_APP_GOOGLE, json=datos_nuevos)
+                        if respuesta.status_code == 200 and respuesta.json().get("status") == "success":
+                            st.success("✅ REGISTRO GUARDADO DIRECTAMENTE EN LA NUBE.")
+                            st.balloons()
+                            st.rerun()
+                        else:
+                            st.error("❌ Error al procesar la inserción en la base de datos.")
+                except Exception as e:
+                    st.error(f"❌ Error de conexión: {str(e)}")
 
 # ==============================================================================
 # MÓDULO 2: DASHBOARD (8 PUNTOS)
@@ -361,8 +353,6 @@ if modulo == "MÓDULO 1: RDO (Lista de 19 Puntos)":
 elif modulo == "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)":
     st.markdown(f'<div class="main-header">Módulo 2: Dashboard de Desempeño</div>', unsafe_allow_html=True)
     
-    # --- AQUÍ ESTÁ LA MAGIA PARA IMPRIMIR ---
-    # Este bloque CSS oculta botones, sidebar y menús SOLO cuando presionas Ctrl+P
     st.markdown("""
     <style>
     .print-instruction {
@@ -391,23 +381,23 @@ elif modulo == "MÓDULO 2: DASHBOARD (Lista de 8 Puntos)":
         En la ventana de impresión, elija "Guardar como PDF".
     </div>
     """, unsafe_allow_html=True)
-    # ----------------------------------------
 
     dibujar_ficha(ficha)
     st.markdown(f"#### 1. Fecha de emisión: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
 
-    key_data = 'data_zona1' if contrato_seleccionado == "ZONA 1 - SECTOR CAMARONERO" else 'data_zona2'
-    df_dashboard = st.session_state[key_data].copy()
-
-    if len(df_dashboard) > 1:
-        df_final = df_dashboard.iloc[1:].reset_index(drop=True)
+    if len(df_actual) > 1:
+        df_final = df_actual.iloc[1:].reset_index(drop=True)
     else:
         df_final = pd.DataFrame(columns=['Fecha', 'Día N', 'Físico Diario (%)', 'Inversión Diaria ($)', 'Físico Acum (%)', 'Financiero Acum ($)', 'Saldo ($)'])
-        df_final.loc[0] = [date.today(), 'Inicio', 0, 0, 0, 0, ficha['Monto_Num']]
+        df_final.loc[0] = [date.today().strftime('%Y-%m-%d'), 'Inicio', 0, 0, 0, 0, ficha['Monto_Num']]
 
     st.markdown("### 2. % de Avance Acumulado (Tabla Detallada)")
     cols_mostrar = ['Fecha', 'Día N', 'Físico Diario (%)', 'Inversión Diaria ($)', 'Físico Acum (%)', 'Financiero Acum ($)', 'Saldo ($)']
     
+    # Conversiones rápidas para formatear sin errores visuales en tablas
+    for col in ['Físico Diario (%)', 'Inversión Diaria ($)', 'Físico Acum (%)', 'Financiero Acum ($)', 'Saldo ($)']:
+        df_final[col] = pd.to_numeric(df_final[col], errors='coerce').fillna(0.0)
+
     st.dataframe(
         df_final[cols_mostrar].style.format({
             'Físico Diario (%)': "{:.2f}%", 'Inversión Diaria ($)': "$ {:,.2f}",
