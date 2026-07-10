@@ -105,7 +105,8 @@ def obtener_ficha_tecnica(zona):
             "Rep_Legal": "OSCAR LUIS YANANGOMEZ SUQUILANDA (Procurador Común)",
             "Monto_Str": "$ 399.743,03",
             "Monto_Num": 399743.03,
-            "Link": "https://www.compraspublicas.gob.ec/ProcesoContratacion/compras/PC/informacionProcesoContratacion2.cpe?idSoliCompra=Mlped7h-x8tM2Mi5JzAbNVHBoqrlPkyFh2Yoxj85zQc"
+            "Link": "https://www.compraspublicas.gob.ec/ProcesoContratacion/compras/PC/informacionProcesoContratacion2.cpe?idSoliCompra=Mlped7h-x8tM2Mi5JzAbNVHBoqrlPkyFh2Yoxj85zQc",
+            "Drive": "https://drive.google.com/drive/folders/1fOF924Rnr2mWbuCgpwu2qFdvYNwjko5M?usp=sharing"
         }
     else:
         return {
@@ -118,7 +119,8 @@ def obtener_ficha_tecnica(zona):
             "Rep_Legal": "CRISTHIAN MANUEL ROMERO FREIRE (Procurador Común)",
             "Monto_Str": "$ 499.654,23",
             "Monto_Num": 499654.23,
-            "Link": "https://www.compraspublicas.gob.ec/ProcesoContratacion/compras/PC/informacionProcesoContratacion2.cpe?idSoliCompra=VJCoFonyH1vOnVROGwOunGmr6qD3pTr-znOrgilqON0,"
+            "Link": "https://www.compraspublicas.gob.ec/ProcesoContratacion/compras/PC/informacionProcesoContratacion2.cpe?idSoliCompra=VJCoFonyH1vOnVROGwOunGmr6qD3pTr-znOrgilqON0,",
+            "Drive": "https://drive.google.com/drive/folders/1JnLGiQNXOhhWx-lDX_hroJa0-vUwDAYr?usp=sharing"
         }
 
 ficha = obtener_ficha_tecnica(contrato_seleccionado)
@@ -145,6 +147,9 @@ def dibujar_ficha(datos):
         <tr>
             <td><strong>Monto USD:</strong></td><td>{datos['Monto_Str']}</td>
             <td><strong>Link:</strong></td><td><a href="{datos['Link']}" target="_blank">Ver en SERCOP</a></td>
+        </tr>
+        <tr>
+            <td><strong>Nube Drive:</strong></td><td colspan="3"><a href="{datos['Drive']}" target="_blank">📂 Acceder a los respaldos en Google Drive</a></td>
         </tr>
     </table>
     """
